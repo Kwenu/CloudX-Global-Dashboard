@@ -1,0 +1,67 @@
+/* @import url() FONT IMPORTS MUST ALWAYS BE AT THE VERY TOP OF THIS FILE, ABOVE THE TAILWIND IMPORTS — DO NOT DELETE THIS COMMENT */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+/* CRITICAL: THE FOLLOWING TAILWIND IMPORTS MUST NEVER BE DELETED OR REORDERED — DO NOT DELETE THIS COMMENT */
+@import 'tailwindcss/base';
+@import 'tailwindcss/components';
+@import 'tailwindcss/utilities';
+
+/* END TAILWIND IMPORTS — ALL OTHER CSS MUST GO BELOW THIS LINE */
+
+/* CloudX design tokens — change brand colours here */
+:root {
+  --brand: 148 28 184; /* #941CB8 */
+  --brand-strong: 122 20 153;
+  --brand-soft: 247 237 251;
+  --ink: 17 17 22;
+  --on-ink: 255 255 255; /* text placed on an ink-filled surface */
+  --sidebar: 0 0 0; /* pure black so the official logo blends seamlessly */
+  --canvas: 246 246 248;
+  --surface: 255 255 255;
+  --line: 228 228 233;
+  --muted: 104 104 116;
+  --success: 21 128 61;
+  --warning: 180 83 9;
+  --danger: 200 30 30;
+  --info: 29 78 216;
+  color-scheme: light;
+}
+/* Dark theme — applied to <html> by the theme toggle, or scoped to a subtree (e.g. the login page) */
+.dark {
+  --brand: 176 74 216;
+  --brand-strong: 196 104 232;
+  --brand-soft: 48 22 60;
+  --ink: 236 236 242;
+  --on-ink: 17 17 22;
+  --sidebar: 0 0 0;
+  --canvas: 10 10 13;
+  --surface: 22 22 28;
+  --line: 46 46 56;
+  --muted: 156 156 170;
+  --success: 74 222 128;
+  --warning: 251 191 36;
+  --danger: 248 113 113;
+  --info: 96 165 250;
+  color-scheme: dark;
+}
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  @apply bg-canvas text-ink antialiased;
+  font-feature-settings: 'cv11', 'ss01';
+  transition: background-color 150ms ease-out;
+}
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
