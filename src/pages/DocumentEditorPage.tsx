@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react';
 import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
-import { ArrowLeftIcon, DownloadIcon, EyeIcon, HistoryIcon, LockIcon, PencilIcon } from 'lucide-react';
+import { ArrowLeftIcon, DownloadIcon, EyeIcon, HistoryIcon, LockIcon, PencilIcon, PenLineIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { ClientPicker } from '../components/clients/ClientPicker';
 import { DocumentPreview } from '../components/documents/DocumentPreview';
@@ -36,18 +36,20 @@ export function DocumentEditorPage({ kind }: {kind: DocumentKind;}) {
   const { id } = useParams();
   const [params] = useSearchParams();
   const navigate = useNavigate();
-  const { member, can } = useAuth();
-  const { settings, members, logo } = useWorkspace();
+  const { member, user, can } = useAuth();
+  const { settings, members, logo, signatureFor } = useWorkspace();
   const editor = useDocumentEditor({ kind, id, duplicateId: params.get('duplicate'), presetClientId: params.get('client') });
   const [mobileView, setMobileView] = useState<'form' | 'preview'>('form');
   const { form, existing, totals } = editor;
   const isInvoice = kind === 'invoice';
   const noun = isInvoice ? 'invoice' : 'quotation';
 
+  // A new document is signed by the director who is logged in; an existing one keeps its creator's signature.
+  const signerId = existing ? existing.created_by : user?.id ?? member?.user_id ?? null;
   const signatory = useMemo(() => {
     const profile = existing ? members.find((m) => m.user_id === existing.created_by)?.profile : member?.profile;
-    return { name: profile?.display_name ?? '', title: profile?.job_title ?? '' };
-  }, [existing, members, member]);
+    return { name: profile?.display_name ?? '', title: profile?.job_title ?? '', signature: signatureFor(signerId) };
+  }, [existing, members, member, signerId, signatureFor]);
 
   const pages = useMemo(() => {
     if (!form || !settings) return [];
@@ -67,6 +69,7 @@ export function DocumentEditorPage({ kind }: {kind: DocumentKind;}) {
           deliverables: form.deliverables,
           paymentSchedule: form.payment_schedule,
           items: form.items,
+          paymentTerms: form.payment_terms,
           additionalCharges: Number(form.additional_charges) || 0,
           amountPaid: existing?.kind === 'invoice' ? existing.amount_paid : 0,
           notes: form.notes,
@@ -148,6 +151,12 @@ export function DocumentEditorPage({ kind }: {kind: DocumentKind;}) {
           <button type="button" onClick={editor.discardDraft} className="font-medium text-brand hover:underline">
             Discard
           </button>
+        </div>
+      }
+      {!readOnly && !signatory.signature && (!existing || existing.created_by === user?.id) &&
+      <div className="mb-4 flex flex-wrap items-center gap-2 rounded-lg border border-line bg-surface px-4 py-2.5 text-[13px] text-muted">
+          <PenLineIcon className="h-4 w-4 text-brand" /> You haven’t saved your signature yet, so the signature line will be blank.
+          <Link to="/settings/access" className="font-medium text-brand hover:underline">Add your signature</Link>
         </div>
       }
       {readOnly &&

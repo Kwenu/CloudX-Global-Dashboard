@@ -64,6 +64,8 @@ export interface Profile {
   job_title: string | null;
   email: string | null;
   status: 'active' | 'disabled';
+  /** Path of the director's signature image in the private "signatures" bucket (or a data URL in local preview). */
+  signature_path?: string | null;
 }
 
 export interface Member {

@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
+import { brandAssets } from '../data/brand';
 import type { CompanySettings, HealthResult, Member } from '../types/database';
 import { errorMessage } from '../utils/format';
 import { useAuth } from './AuthContext';
@@ -8,14 +9,22 @@ export interface HealthState extends HealthResult {
   lastSuccessAt: string | null;
 }
 
+export interface ImageAsset {
+  src: string;
+  aspect: number;
+}
+
 interface WorkspaceValue {
   settings: CompanySettings | null;
   members: Member[];
   loading: boolean;
   error: string | null;
-  logo: {src: string;aspect: number;} | null;
+  /** The logo printed on invoices and quotations: the uploaded one, otherwise the official CloudX logo. */
+  logo: ImageAsset | null;
   reload(): Promise<void>;
   memberName(id: string | null | undefined): string;
+  /** The saved signature of a director, or null when they have not added one yet. */
+  signatureFor(id: string | null | undefined): ImageAsset | null;
   health: HealthState;
   runHealthCheck(): Promise<void>;
 }
@@ -32,13 +41,46 @@ function loadImageAspect(src: string): Promise<number> {
   });
 }
 
+function blobToDataUrl(blob: Blob): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result));
+    reader.onerror = () => reject(reader.error);
+    reader.readAsDataURL(blob);
+  });
+}
+
+let defaultLogoPromise: Promise<ImageAsset | null> | null = null;
+
+/** The official logo that ships with the app (public/Logo-document.png), as a data URL for the PDF. */
+function loadDefaultLogo(): Promise<ImageAsset | null> {
+  if (!defaultLogoPromise) {
+    defaultLogoPromise = (async () => {
+      try {
+        const res = await fetch(brandAssets.logoDocument);
+        if (!res.ok) return null;
+        const src = await blobToDataUrl(await res.blob());
+        return { src, aspect: await loadImageAspect(src) };
+      } catch {
+        return null;
+      }
+    })();
+    void defaultLogoPromise.then((v) => {
+      if (!v) defaultLogoPromise = null;
+    });
+  }
+  return defaultLogoPromise;
+}
+
 export function WorkspaceProvider({ children }: {children: React.ReactNode;}) {
   const { api, mode } = useAuth();
   const [settings, setSettings] = useState<CompanySettings | null>(null);
   const [members, setMembers] = useState<Member[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [logo, setLogo] = useState<{src: string;aspect: number;} | null>(null);
+  const [logo, setLogo] = useState<ImageAsset | null>(null);
+  const [signatures, setSignatures] = useState<Record<string, ImageAsset>>({});
+  const signatureCache = useRef(new Map<string, ImageAsset | null>());
   const [health, setHealth] = useState<HealthState>({
     overall: 'checking',
     database: 'checking',
@@ -58,7 +100,24 @@ export function WorkspaceProvider({ children }: {children: React.ReactNode;}) {
       setSettings(s);
       setMembers(m);
       const dataUrl = await api.getLogoDataUrl(s).catch(() => null);
-      setLogo(dataUrl ? { src: dataUrl, aspect: await loadImageAspect(dataUrl) } : null);
+      setLogo(dataUrl ? { src: dataUrl, aspect: await loadImageAspect(dataUrl) } : await loadDefaultLogo());
+
+      // Load each director's saved signature (cached per file, so only new or changed ones are downloaded).
+      const next: Record<string, ImageAsset> = {};
+      await Promise.all(
+        m.map(async (member) => {
+          const path = member.profile?.signature_path;
+          if (!path) return;
+          let asset = signatureCache.current.get(path);
+          if (asset === undefined) {
+            const url = await api.getSignatureDataUrl(path).catch(() => null);
+            asset = url ? { src: url, aspect: await loadImageAspect(url) } : null;
+            if (asset) signatureCache.current.set(path, asset);
+          }
+          if (asset) next[member.user_id] = asset;
+        })
+      );
+      setSignatures(next);
     } catch (e) {
       setError(errorMessage(e));
     } finally {
@@ -110,8 +169,13 @@ export function WorkspaceProvider({ children }: {children: React.ReactNode;}) {
     [members]
   );
 
+  const signatureFor = useCallback(
+    (id: string | null | undefined) => id ? signatures[id] ?? null : null,
+    [signatures]
+  );
+
   return (
-    <WorkspaceContext.Provider value={{ settings, members, loading, error, logo, reload, memberName, health, runHealthCheck }}>
+    <WorkspaceContext.Provider value={{ settings, members, loading, error, logo, reload, memberName, signatureFor, health, runHealthCheck }}>
       {children}
     </WorkspaceContext.Provider>);
 

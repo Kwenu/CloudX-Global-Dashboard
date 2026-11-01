@@ -286,7 +286,7 @@ export function createSupabaseApi(): Api {
     async listMembers() {
       const { data, error } = await db().
       from('company_members').
-      select('company_id, user_id, role, status, created_at, profile:profiles!company_members_user_id_fkey(id, display_name, job_title, email, status)').
+      select('company_id, user_id, role, status, created_at, profile:profiles!company_members_user_id_fkey(id, display_name, job_title, email, status, signature_path)').
       order('created_at');
       check(error);
       return (data as Row[] ?? []).map((r) => ({
@@ -303,6 +303,38 @@ export function createSupabaseApi(): Api {
       const uid = await currentUserId();
       const { error } = await db().from('profiles').update(patch).eq('id', uid);
       check(error);
+    },
+
+    async saveMySignature(png) {
+      const [cid, uid] = await Promise.all([companyId(), currentUserId()]);
+      const { data: before } = await db().from('profiles').select('signature_path').eq('id', uid).maybeSingle();
+      const oldPath = strOrNull((before as Row | null)?.signature_path);
+      // A new file name per upload avoids stale browser caches; the old file is removed afterwards.
+      const path = `${cid}/${uid}-${Date.now()}.png`;
+      const { error: uploadError } = await db().storage.from('signatures').upload(path, png, { contentType: 'image/png', upsert: false });
+      check(uploadError);
+      const { error } = await db().from('profiles').update({ signature_path: path }).eq('id', uid);
+      if (error) {
+        await db().storage.from('signatures').remove([path]);
+        check(error);
+      }
+      if (oldPath && oldPath !== path) await db().storage.from('signatures').remove([oldPath]);
+    },
+
+    async removeMySignature() {
+      const uid = await currentUserId();
+      const { data: before } = await db().from('profiles').select('signature_path').eq('id', uid).maybeSingle();
+      const oldPath = strOrNull((before as Row | null)?.signature_path);
+      const { error } = await db().from('profiles').update({ signature_path: null }).eq('id', uid);
+      check(error);
+      if (oldPath) await db().storage.from('signatures').remove([oldPath]);
+    },
+
+    async getSignatureDataUrl(path) {
+      if (!path) return null;
+      const { data, error } = await db().storage.from('signatures').download(path);
+      if (error || !data) return null;
+      return blobToDataUrl(data);
     },
 
     async inviteMember(input) {

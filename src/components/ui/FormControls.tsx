@@ -63,17 +63,17 @@ export function Toggle({
 
 }: {checked: boolean;onChange: (value: boolean) => void;label: string;id?: string;}) {
   return (
-    <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2.5 text-sm text-ink/80">
+    <label htmlFor={id} className="inline-flex cursor-pointer items-center gap-2.5 whitespace-nowrap text-sm text-ink/80">
       <button
         id={id}
         type="button"
         role="switch"
         aria-checked={checked}
         onClick={() => onChange(!checked)}
-        className={`relative h-5 w-9 rounded-full transition-colors duration-150 ${checked ? 'bg-brand' : 'bg-ink/15'}`}>
+        className={`relative inline-block h-5 w-9 shrink-0 rounded-full transition-colors duration-150 ${checked ? 'bg-brand' : 'bg-ink/15'}`}>
         
         <span
-          className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ease-out ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
+          className={`absolute left-0 top-0.5 h-4 w-4 rounded-full bg-white shadow transition-transform duration-150 ease-out ${checked ? 'translate-x-[18px]' : 'translate-x-0.5'}`} />
         
       </button>
       {label}

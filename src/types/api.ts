@@ -39,6 +39,11 @@ export interface Api {
 
   listMembers(): Promise<Member[]>;
   updateMyProfile(patch: {display_name: string;job_title: string;}): Promise<void>;
+  /** Stores the signed-in director's signature (transparent PNG). Replaces any previous one. */
+  saveMySignature(png: Blob): Promise<void>;
+  removeMySignature(): Promise<void>;
+  /** Returns the signature as a data URL, ready to be placed on a PDF. */
+  getSignatureDataUrl(path: string | null | undefined): Promise<string | null>;
   inviteMember(input: InviteInput): Promise<void>;
   updateMember(userId: string, patch: {role: Role;status: MemberStatus;}): Promise<void>;
 

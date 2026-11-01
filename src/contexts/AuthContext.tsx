@@ -68,7 +68,7 @@ export function AuthProvider({ children }: {children: React.ReactNode;}) {
       await supabase.rpc('accept_membership');
       const { data, error } = await supabase.
       from('company_members').
-      select('company_id, user_id, role, status, created_at, profile:profiles!company_members_user_id_fkey(id, display_name, job_title, email, status)').
+      select('company_id, user_id, role, status, created_at, profile:profiles!company_members_user_id_fkey(id, display_name, job_title, email, status, signature_path)').
       eq('user_id', authUser.id).
       eq('status', 'active').
       maybeSingle();

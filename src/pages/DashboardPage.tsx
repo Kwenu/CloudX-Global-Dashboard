@@ -20,6 +20,17 @@ function greeting(): string {
   return h < 12 ? 'Good morning' : h < 17 ? 'Good afternoon' : 'Good evening';
 }
 
+/** The signed-in director's name for the greeting: profile name, otherwise a tidy version of their email. */
+function directorName(displayName: string | undefined, email: string | undefined): string {
+  const name = (displayName ?? '').trim();
+  if (name) return name;
+  return (email ?? '').
+  split('@')[0].
+  replace(/[._-]+/g, ' ').
+  replace(/\b\w/g, (c) => c.toUpperCase()).
+  trim();
+}
+
 function Figure({ label, value, hint, tone }: {label: string;value: string;hint?: string;tone?: 'danger';}) {
   return (
     <div className="min-w-0">
@@ -31,7 +42,7 @@ function Figure({ label, value, hint, tone }: {label: string;value: string;hint?
 }
 
 export function DashboardPage() {
-  const { api, member, can } = useAuth();
+  const { api, member, user, can } = useAuth();
   const { settings } = useWorkspace();
   const { data, loading, error, reload } = useAsync(
     () => Promise.all([api.listInvoices(), api.listQuotations(), api.listPayments(), api.listPlans(), api.listClients(), api.listActivity({ limit: 8 })]),
@@ -75,16 +86,20 @@ export function DashboardPage() {
   const [invoices,, payments,,, activity] = data;
   const clientName = (id: string) => stats.clients.find((c) => c.id === id)?.name ?? 'Client';
   const isEmpty = invoices.length === 0 && data[1].length === 0 && stats.clients.length === 0;
-  const firstName = (member?.profile?.display_name || '').split(' ')[0];
+  const name = directorName(member?.profile?.display_name, member?.profile?.email ?? user?.email);
+  const jobTitle = member?.profile?.job_title?.trim();
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p className="text-[13px] text-muted">{formatDate(new Date().toISOString())}</p>
+          <p className="text-[13px] text-muted">
+            {formatDate(new Date().toISOString())}
+            {jobTitle ? ` · ${jobTitle}` : ''}
+          </p>
           <h1 className="mt-1 text-[26px] font-semibold tracking-tight">
             {greeting()}
-            {firstName ? `, ${firstName}` : ''}
+            {name ? <>, <span className="text-brand">{name}</span></> : ''}
           </h1>
         </div>
         <div className="flex flex-wrap gap-2">

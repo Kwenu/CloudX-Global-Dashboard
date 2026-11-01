@@ -88,16 +88,16 @@ export function SettingsForm({ section }: {section: SettingsSection;}) {
   return (
     <div className="space-y-5">
       {section.id === 'company' &&
-      <Panel title="Logo" description="Used on the invoice and quotation PDFs. A transparent PNG on white works best." bodyClassName="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
-          <div className="flex h-20 w-48 items-center justify-center rounded-lg border border-line bg-white p-3">
-            {logo ? <img src={logo.src} alt="Current document logo" className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-muted">No logo uploaded</span>}
+      <Panel title="Logo" description="Shown at the top-left of every invoice and quotation. The official CloudX logo is used unless you upload another one." bodyClassName="flex flex-col gap-4 p-5 sm:flex-row sm:items-center">
+          <div className="flex h-24 w-48 items-center justify-center rounded-lg border border-line bg-white p-2">
+            {logo ? <img src={logo.src} alt="Current document logo" className="max-h-full max-w-full object-contain" /> : <span className="text-xs text-muted">Loading logo…</span>}
           </div>
           <div>
             <input ref={fileRef} type="file" accept="image/png,image/jpeg,image/webp,image/svg+xml" className="hidden" onChange={(e) => e.target.files?.[0] && void upload(e.target.files[0])} />
             <Button variant="secondary" icon={<ImageUpIcon className="h-4 w-4" />} loading={uploading} disabled={readOnly} onClick={() => fileRef.current?.click()}>
               Upload logo
             </Button>
-            <p className="mt-2 text-xs text-muted">Stored privately in Supabase Storage. Max 2 MB.</p>
+            <p className="mt-2 text-xs text-muted">Optional. Use a PNG with a transparent or white background. Stored privately in Supabase Storage. Max 2 MB.</p>
           </div>
         </Panel>
       }

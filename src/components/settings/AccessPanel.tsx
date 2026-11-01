@@ -11,6 +11,7 @@ import { Field, Input, Select } from '../ui/FormControls';
 import { Modal } from '../ui/Modal';
 import { Panel } from '../ui/Panel';
 import { StatusBadge } from '../ui/StatusBadge';
+import { SignaturePanel } from './SignaturePanel';
 
 const permissionLabels: Record<Permission, string> = {
   'workspace.read': 'View records',
@@ -83,7 +84,7 @@ export function AccessPanel() {
 
   return (
     <div className="space-y-5">
-      <Panel title="Your profile" description="Your name and title are printed as the authorised representative on documents you create." bodyClassName="p-5">
+      <Panel title="Your profile" description="Your name is shown in the dashboard greeting. Your name and title are printed as the authorised signatory on documents you create." bodyClassName="p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           <Field label="Display name" htmlFor="me-name" required>
             <Input id="me-name" value={profile.display_name} onChange={(e) => setProfile({ ...profile, display_name: e.target.value })} />
@@ -96,6 +97,8 @@ export function AccessPanel() {
           <Button onClick={saveProfile} loading={savingProfile}>Save profile</Button>
         </div>
       </Panel>
+
+      <SignaturePanel />
 
       <Panel
         title="Workspace members"

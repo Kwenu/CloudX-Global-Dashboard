@@ -239,6 +239,27 @@ export function createLocalApi(): Api {
         }
       });
     },
+    async saveMySignature(png) {
+      const dataUrl = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(String(reader.result));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(png);
+      });
+      mutate((s) => {
+        const me = s.members.find((m) => m.user_id === PREVIEW_USER_ID);
+        if (me?.profile) me.profile.signature_path = dataUrl;
+      });
+    },
+    async removeMySignature() {
+      mutate((s) => {
+        const me = s.members.find((m) => m.user_id === PREVIEW_USER_ID);
+        if (me?.profile) me.profile.signature_path = null;
+      });
+    },
+    async getSignatureDataUrl(path) {
+      return path && path.startsWith('data:') ? path : null;
+    },
     async inviteMember() {
       throw new Error('Invitations require Supabase. Configure the backend to invite the other directors.');
     },

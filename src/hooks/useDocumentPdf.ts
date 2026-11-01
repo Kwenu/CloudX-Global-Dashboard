@@ -8,7 +8,7 @@ import { pdfInputFromDocument } from '../utils/documents';
 
 /** Download / print a saved document. Generating a PDF never changes the document's status. */
 export function useDocumentPdf() {
-  const { settings, members, logo } = useWorkspace();
+  const { settings, members, logo, signatureFor } = useWorkspace();
 
   const pagesFor = useCallback(
     (doc: Invoice | Quotation, client: Client | null) => {
@@ -18,12 +18,12 @@ export function useDocumentPdf() {
           doc,
           client,
           settings,
-          { name: creator?.display_name ?? '', title: creator?.job_title ?? '' },
+          { name: creator?.display_name ?? '', title: creator?.job_title ?? '', signature: signatureFor(doc.created_by) },
           logo
         )
       );
     },
-    [settings, members, logo]
+    [settings, members, logo, signatureFor]
   );
 
   const download = useCallback(
