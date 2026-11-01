@@ -71,14 +71,14 @@ export function LoginPage() {
 
   return (
     // The login screen is always black: the `dark` class scopes the dark tokens to this subtree.
-    <div className="dark flex min-h-screen w-full flex-col bg-black text-ink">
-      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-10 px-6 py-10 lg:flex-row lg:gap-20">
+    <div className="dark flex min-h-screen min-h-dvh w-full flex-col bg-black text-ink">
+      <main className="mx-auto flex w-full max-w-5xl flex-1 flex-col items-center justify-center gap-3 px-5 py-4 sm:gap-6 lg:flex-row lg:gap-20 lg:px-6 lg:py-10 [@media(max-height:520px)]:flex-row [@media(max-height:520px)]:gap-8">
         {/* Brand */}
         <section className="flex flex-col items-center text-center lg:flex-1">
           <img
             src={brandAssets.logoOnDark}
             alt="CloudX Global (Pvt) Ltd"
-            className="h-[220px] w-[220px] object-contain sm:h-[280px] sm:w-[280px] lg:h-[360px] lg:w-[360px]" />
+            className="h-[clamp(104px,22dvh,230px)] w-[clamp(104px,22dvh,230px)] object-contain lg:h-[360px] lg:w-[360px]" />
           
           <p className="-mt-4 hidden max-w-sm text-[15px] leading-relaxed text-white/55 lg:block">
             Invoices, Quotations and Maintenance - One Shared Workspace for the CloudX Directors.
@@ -86,14 +86,17 @@ export function LoginPage() {
         </section>
 
         {/* Form */}
-        <section className="w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#0E0E12] p-7 sm:p-8">
+        <section className="w-full max-w-[400px] rounded-2xl border border-white/10 bg-[#0E0E12] p-5 sm:p-8">
           <AnimatePresence mode="wait" initial={false}>
             {view === 'signin' &&
             <motion.div key="signin" {...fade}>
-                <h1 className="text-2xl font-semibold tracking-tight text-white">Director Sign In</h1>
-                <p className="mt-1.5 text-sm text-white/55">Use the account your administrator created for you.</p>
+                <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">Director Sign In</h1>
+                <p className="mt-1 text-[13px] text-white/55 sm:mt-1.5 sm:text-sm [@media(max-height:520px)]:hidden">
+                  <span className="sm:hidden">Sign in with your director account.</span>
+                  <span className="hidden sm:inline">Use the account your administrator created for you.</span>
+                </p>
 
-                <form onSubmit={handleSignIn} className="mt-7 space-y-4" noValidate>
+                <form onSubmit={handleSignIn} className="mt-4 space-y-3 sm:mt-7 sm:space-y-4 [@media(max-height:520px)]:mt-3" noValidate>
                   <Field label="Email" htmlFor="email">
                     <Input id="email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@cloudxglobal.com" />
                   </Field>
@@ -135,7 +138,7 @@ export function LoginPage() {
                     {verifying ? 'Verifying…' : 'Sign in'}
                   </Button>
                 </form>
-                <p className="mt-6 text-xs leading-relaxed text-white/40">
+                <p className="mt-4 text-[11px] leading-relaxed text-white/40 sm:mt-6 sm:text-xs [@media(max-height:700px)]:hidden">
                   There’s no public registration. New directors are invited by a workspace administrator.
                 </p>
               </motion.div>
@@ -143,12 +146,12 @@ export function LoginPage() {
 
             {view === 'forgot' &&
             <motion.div key="forgot" {...fade}>
-                <button type="button" onClick={() => setView('signin')} className="mb-5 inline-flex items-center gap-1.5 text-[13px] font-medium text-white/55 hover:text-white">
+                <button type="button" onClick={() => setView('signin')} className="mb-3 inline-flex items-center gap-1.5 text-[13px] font-medium text-white/55 hover:text-white sm:mb-5">
                   <ArrowLeftIcon className="h-3.5 w-3.5" /> Back to sign in
                 </button>
-                <h1 className="text-2xl font-semibold tracking-tight text-white">Reset your password</h1>
-                <p className="mt-1.5 text-sm text-white/55">We’ll email a secure link to set a new password.</p>
-                <form onSubmit={handleReset} className="mt-7 space-y-4" noValidate>
+                <h1 className="text-xl font-semibold tracking-tight text-white sm:text-2xl">Reset your password</h1>
+                <p className="mt-1 text-[13px] text-white/55 sm:mt-1.5 sm:text-sm">We’ll email a secure link to set a new password.</p>
+                <form onSubmit={handleReset} className="mt-4 space-y-3 sm:mt-7 sm:space-y-4" noValidate>
                   <Field label="Email" htmlFor="reset-email">
                     <Input id="reset-email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
                   </Field>
@@ -177,7 +180,7 @@ export function LoginPage() {
           </AnimatePresence>
         </section>
       </main>
-      <p className="pb-6 text-center text-xs text-white/35">© {new Date().getFullYear()} CloudX Global (Pvt) Ltd · Authorised directors only</p>
+      <p className="pb-3 text-center text-[11px] text-white/35 sm:pb-6 sm:text-xs [@media(max-height:520px)]:hidden">© {new Date().getFullYear()} CloudX Global (Pvt) Ltd · Authorised directors only</p>
     </div>);
 
 }

@@ -143,16 +143,23 @@ export function createLocalApi(): Api {
     s.log.unshift({ id: newId(), entity_type: entity, entity_id: entityId, action, summary, actor_id: PREVIEW_USER_ID, created_at: now() });
   }
 
-  function nextNumber(s: Store, kind: 'invoice' | 'quotation'): string {
+  function sequenceKey(s: Store, kind: 'invoice' | 'quotation'): string {
+    return `${kind}-${s.settings.number_include_year ? new Date().getFullYear() : 0}`;
+  }
+
+  function formatNumber(s: Store, kind: 'invoice' | 'quotation', n: number): string {
     const { invoice_prefix, quotation_prefix, number_padding, number_include_year } = s.settings;
-    const year = number_include_year ? new Date().getFullYear() : 0;
-    const key = `${kind}-${year}`;
     const prefix = kind === 'invoice' ? invoice_prefix : quotation_prefix;
+    return `${prefix}-${number_include_year ? `${new Date().getFullYear()}-` : ''}${String(n).padStart(number_padding, '0')}`;
+  }
+
+  function nextNumber(s: Store, kind: 'invoice' | 'quotation'): string {
+    const key = sequenceKey(s, kind);
     const existing = new Set((kind === 'invoice' ? s.invoices : s.quotations).map((d) => d.number));
     let candidate = '';
     do {
       s.sequences[key] = (s.sequences[key] ?? 0) + 1;
-      candidate = `${prefix}-${number_include_year ? `${year}-` : ''}${String(s.sequences[key]).padStart(number_padding, '0')}`;
+      candidate = formatNumber(s, kind, s.sequences[key]);
     } while (existing.has(candidate));
     return candidate;
   }
@@ -202,6 +209,25 @@ export function createLocalApi(): Api {
 
     async getSettings() {
       return clone(load().settings);
+    },
+    async getNextNumbers() {
+      const s = load();
+      return {
+        invoice: (s.sequences[sequenceKey(s, 'invoice')] ?? 0) + 1,
+        quotation: (s.sequences[sequenceKey(s, 'quotation')] ?? 0) + 1
+      };
+    },
+    async setNextNumber(kind, next) {
+      mutate((s) => {
+        const max = 10 ** s.settings.number_padding - 1;
+        if (!Number.isInteger(next) || next < 1 || next > max) throw new Error(`Enter a whole number between 1 and ${max}.`);
+        const candidate = formatNumber(s, kind, next);
+        if ((kind === 'invoice' ? s.invoices : s.quotations).some((d) => d.number === candidate)) {
+          throw new Error(`${candidate} is already in use. Choose a higher number.`);
+        }
+        s.sequences[sequenceKey(s, kind)] = next - 1;
+        log(s, 'settings', null, 'updated', `Set the next ${kind} number to ${candidate}`);
+      });
     },
     async updateSettings(patch) {
       return mutate((s) => {

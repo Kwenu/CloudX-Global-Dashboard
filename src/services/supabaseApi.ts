@@ -254,6 +254,18 @@ export function createSupabaseApi(): Api {
       return mapSettings(data as Row);
     },
 
+    async getNextNumbers() {
+      const { data, error } = await db().rpc('get_next_document_numbers');
+      check(error);
+      const r = (data ?? {}) as Row;
+      return { invoice: num(r.invoice) || 1, quotation: num(r.quotation) || 1 };
+    },
+
+    async setNextNumber(kind, next) {
+      const { error } = await db().rpc('set_next_document_number', { p_type: kind, p_next: next });
+      check(error);
+    },
+
     async updateSettings(patch) {
       const id = await companyId();
       const { company_id: _ignored, updated_at: _ts, ...rest } = patch;

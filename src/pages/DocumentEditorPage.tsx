@@ -297,7 +297,7 @@ export function DocumentEditorPage({ kind }: {kind: DocumentKind;}) {
               <span>Live preview · A4</span>
               <span>{pages.length} page{pages.length === 1 ? '' : 's'}</span>
             </div>
-            <div className="max-h-[calc(100vh-140px)] overflow-y-auto rounded-xl bg-ink/[0.04] p-3 md:p-5">
+            <div className="rounded-xl bg-ink/[0.04] p-3 md:p-5 xl:max-h-[calc(100vh-140px)] xl:overflow-y-auto">
               <DocumentPreview pages={pages} label={`${noun} preview`} />
             </div>
           </div>

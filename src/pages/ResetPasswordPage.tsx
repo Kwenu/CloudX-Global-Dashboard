@@ -33,7 +33,7 @@ export function ResetPasswordPage() {
   const noSession = status !== 'loading' && !user;
 
   return (
-    <div className="flex min-h-screen w-full items-center justify-center bg-canvas p-6">
+    <div className="flex min-h-screen min-h-dvh w-full items-center justify-center bg-canvas p-6">
       <div className="w-full max-w-[400px] rounded-2xl border border-line bg-surface p-8 shadow-card">
         <div className="mb-4 flex h-11 w-11 items-center justify-center rounded-xl bg-brand-soft text-brand">
           <KeyRoundIcon className="h-5 w-5" aria-hidden />

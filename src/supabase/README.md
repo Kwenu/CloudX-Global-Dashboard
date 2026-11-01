@@ -15,7 +15,8 @@ Supabase dashboard → **SQL Editor** → run these files **in this order**, one
 1. `migrations/20261025000001_schema.sql`
 2. `migrations/20261025000002_security.sql`
 3. `migrations/20261025000003_functions.sql`
-4. `migrations/20261031000004_director_signatures.sql`  ← new: director signatures
+4. `migrations/20261031000004_director_signatures.sql`  ← director signatures
+5. `migrations/20261101000005_next_document_number.sql`  ← new: lets you set the next invoice / quotation number in Settings
 
 ## 3. Create the three director logins
 1. **Authentication → Users → Add user → Create new user.** Create one account per director

@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { useAuth } from '../../contexts/AuthContext';
@@ -15,6 +15,17 @@ export function AppShell() {
   const { settings } = useWorkspace();
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Close the phone menu when navigating, and stop the page behind it from scrolling while it is open
+  useEffect(() => setMobileOpen(false), [location.pathname]);
+  useEffect(() => {
+    if (!mobileOpen) return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [mobileOpen]);
 
   const { data } = useAsync(
     () => Promise.all([api.listInvoices(), api.listPlans(), api.listClients()]),
@@ -48,7 +59,7 @@ export function AppShell() {
   }, [data, settings]);
 
   return (
-    <div className="flex min-h-screen w-full bg-canvas">
+    <div className="flex min-h-screen min-h-dvh w-full bg-canvas">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[248px] lg:block">
         <Sidebar />
       </aside>
@@ -65,7 +76,7 @@ export function AppShell() {
             onClick={() => setMobileOpen(false)} />
           
             <motion.aside
-            className="absolute inset-y-0 left-0 w-[260px]"
+            className="absolute inset-y-0 left-0 w-[min(260px,85vw)]"
             initial={{ x: -260 }}
             animate={{ x: 0 }}
             exit={{ x: -260 }}
@@ -79,7 +90,7 @@ export function AppShell() {
 
       <div className="flex min-w-0 flex-1 flex-col lg:pl-[248px]">
         <TopBar onMenu={() => setMobileOpen(true)} alerts={alerts} />
-        <main className="mx-auto w-full max-w-[1400px] flex-1 px-4 py-6 md:px-8 md:py-8">
+        <main className="mx-auto w-full min-w-0 max-w-[1400px] flex-1 px-4 py-6 md:px-8 md:py-8">
           <Outlet />
         </main>
       </div>

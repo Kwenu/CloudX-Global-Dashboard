@@ -35,6 +35,10 @@ export interface Api {
   getSettings(): Promise<CompanySettings>;
   updateSettings(patch: Partial<CompanySettings>): Promise<CompanySettings>;
   uploadLogo(file: File): Promise<CompanySettings>;
+  /** The number the next new invoice / quotation will receive (e.g. 25 → CX-2026-0025). */
+  getNextNumbers(): Promise<{invoice: number;quotation: number;}>;
+  /** Makes the next new document of this kind use `next`. Issued numbers are never changed or reused. */
+  setNextNumber(kind: 'invoice' | 'quotation', next: number): Promise<void>;
   getLogoDataUrl(settings: CompanySettings): Promise<string | null>;
 
   listMembers(): Promise<Member[]>;

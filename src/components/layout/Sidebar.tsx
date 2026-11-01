@@ -67,11 +67,11 @@ export function Sidebar({ onNavigate }: {onNavigate?: () => void;}) {
 
   return (
     <div className="flex h-full flex-col bg-sidebar text-white">
-      <div className="flex justify-center px-5 pb-1 pt-3">
-        <img src={brandAssets.logoOnDark} alt="CloudX Global (Pvt) Ltd" className="h-[132px] w-[132px] object-contain" />
+      <div className="flex shrink-0 justify-center px-5 pb-1 pt-3">
+        <img src={brandAssets.logoOnDark} alt="CloudX Global (Pvt) Ltd" className="h-[96px] w-[96px] object-contain sm:h-[132px] sm:w-[132px]" />
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-3 py-2" aria-label="Main">
+      <nav className="min-h-0 flex-1 space-y-0.5 overflow-y-auto overscroll-contain px-3 py-2" aria-label="Main">
         {navigation.map((item) =>
         <NavLink
           key={item.to}
@@ -95,7 +95,7 @@ export function Sidebar({ onNavigate }: {onNavigate?: () => void;}) {
         )}
       </nav>
 
-      <div className="border-t border-white/[0.08] p-3">
+      <div className="shrink-0 border-t border-white/[0.08] p-3">
         <SyncStatus />
         <div className="flex items-center gap-3 rounded-lg px-2 py-2">
           <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-[#941CB8] text-xs font-semibold text-white">

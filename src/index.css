@@ -44,15 +44,38 @@
   --info: 96 165 250;
   color-scheme: dark;
 }
+html {
+  /* stop phones from inflating text after rotation, and from showing a grey flash on taps */
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+}
 html,
 body,
 #root {
   min-height: 100%;
 }
 body {
+  /* never let one wide element make the whole page pan sideways; `clip` (unlike `hidden`) keeps normal vertical scrolling */
+  overflow-x: clip;
+  overscroll-behavior-y: none;
   @apply bg-canvas text-ink antialiased;
   font-feature-settings: 'cv11', 'ss01';
   transition: background-color 150ms ease-out;
+}
+/* iOS Safari zooms the whole page when a field under 16px gets focus and then leaves it stuck zoomed in, which
+   makes the screen feel impossible to move. 16px on phones prevents the zoom. */
+@media (max-width: 767px) {
+  input:not([type='checkbox']):not([type='radio']),
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
+img,
+svg,
+video {
+  max-width: 100%;
 }
 .tabular {
   font-variant-numeric: tabular-nums;

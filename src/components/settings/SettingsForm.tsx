@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ImageUpIcon } from 'lucide-react';
 import { toast } from 'sonner';
 import { useAuth } from '../../contexts/AuthContext';
@@ -11,6 +11,88 @@ import { Field, Input, Select, Textarea, Toggle } from '../ui/FormControls';
 import { Panel } from '../ui/Panel';
 
 type Value = string | number | boolean | null;
+
+/** "Next number" control: lets a director choose where invoice / quotation numbering continues (e.g. start at 0025). */
+function NextNumberPanel({ kind, settings, disabled }: {kind: 'invoice' | 'quotation';settings: CompanySettings;disabled: boolean;}) {
+  const { api } = useAuth();
+  const noun = kind === 'invoice' ? 'invoice' : 'quotation';
+  const [current, setCurrent] = useState<number | null>(null);
+  const [input, setInput] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const refresh = useCallback(async () => {
+    try {
+      const next = await api.getNextNumbers();
+      setCurrent(next[kind]);
+      setInput(String(next[kind]));
+      setError(null);
+    } catch (e) {
+      setError(errorMessage(e));
+    }
+  }, [api, kind]);
+
+  useEffect(() => {
+    void refresh();
+  }, [refresh, settings.updated_at]);
+
+  const prefix = kind === 'invoice' ? settings.invoice_prefix : settings.quotation_prefix;
+  const pad = settings.number_padding || 4;
+  const format = (n: number) => [prefix, settings.number_include_year ? new Date().getFullYear() : null, String(n).padStart(pad, '0')].filter(Boolean).join('-');
+  const n = Number(input);
+  const max = 10 ** pad - 1;
+  const valid = input.trim() !== '' && Number.isInteger(n) && n >= 1 && n <= max;
+
+  async function apply() {
+    if (!valid) return;
+    setBusy(true);
+    try {
+      await api.setNextNumber(kind, n);
+      toast.success(`The next ${noun} will be ${format(n)}`);
+      await refresh();
+    } catch (e) {
+      toast.error(errorMessage(e));
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Panel title={`Next ${noun} number`} description={`Choose where ${noun} numbering continues — for example enter 25 to start from ${format(25)}.`} bodyClassName="p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-end">
+        <div className="sm:w-56">
+          <Field label="Next number" htmlFor={`next-${kind}`}>
+            <Input
+              id={`next-${kind}`}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              max={max}
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => e.key === 'Enter' && void apply()}
+              disabled={disabled || current === null} />
+            
+          </Field>
+        </div>
+        {!disabled &&
+        <Button onClick={apply} loading={busy} disabled={!valid || current === null || n === current}>
+            Set next number
+          </Button>
+        }
+      </div>
+      {error ?
+      <p className="mt-3 text-[13px] text-danger">
+          Couldn’t load the numbering: {error}. If this mentions a missing function, run <span className="font-medium">20261101000005_next_document_number.sql</span> in the Supabase SQL Editor.
+        </p> :
+      <p className="mt-3 text-[13px] text-muted">
+          {current !== null && <>The next {noun} will be <span className="font-medium text-ink tabular">{format(valid ? n : current)}</span>. </>}
+          Numbers already issued never change and are never reused.
+        </p>
+      }
+    </Panel>);
+
+}
 
 export function SettingsForm({ section }: {section: SettingsSection;}) {
   const { api, can } = useAuth();
@@ -102,6 +184,10 @@ export function SettingsForm({ section }: {section: SettingsSection;}) {
         </Panel>
       }
 
+      {(section.id === 'invoice' || section.id === 'quotation') &&
+      <NextNumberPanel kind={section.id} settings={settings} disabled={readOnly} />
+      }
+
       <Panel title={section.label} description={section.description} bodyClassName="p-5">
         <div className="grid gap-4 sm:grid-cols-2">
           {fields.map((f) => {
@@ -134,7 +220,7 @@ export function SettingsForm({ section }: {section: SettingsSection;}) {
         </div>
         {preview &&
         <p className="mt-4 text-[13px] text-muted">
-            Next numbers look like <span className="font-medium text-ink tabular">{preview}</span>. Existing document numbers never change.
+            Numbers are formatted like <span className="font-medium text-ink tabular">{preview}</span>. Existing document numbers never change.
           </p>
         }
         {!readOnly &&

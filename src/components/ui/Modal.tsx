@@ -41,7 +41,7 @@ export function Modal({ open, onClose, title, description, children, footer, siz
           onClick={onClose} />
         
           <motion.div
-          className={`relative flex max-h-[92vh] w-full ${widths[size]} flex-col rounded-t-2xl bg-surface shadow-pop sm:rounded-2xl`}
+          className={`relative flex max-h-[92vh] max-h-[92dvh] w-full ${widths[size]} flex-col rounded-t-2xl bg-surface shadow-pop sm:rounded-2xl`}
           initial={{ opacity: 0, scale: 0.96, y: 8 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.97, y: 4 }}

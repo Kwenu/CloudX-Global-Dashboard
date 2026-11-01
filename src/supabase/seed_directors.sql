@@ -34,7 +34,3 @@ begin
       set role = excluded.role, status = 'active';
   end loop;
 end $$;
-
--- Check the result:
--- select p.display_name, p.job_title, p.email, m.role, m.status
--- from public.company_members m join public.profiles p on p.id = m.user_id;
